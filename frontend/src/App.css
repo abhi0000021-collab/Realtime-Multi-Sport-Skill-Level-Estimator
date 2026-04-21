@@ -1,0 +1,154 @@
+/* ================= GLOBAL ================= */
+
+body{
+  margin:0;
+  font-family:"Poppins", sans-serif;
+  background:radial-gradient(circle at top,#0f172a,#020617 60%);
+  color:white;
+  overflow-x:hidden;
+}
+
+/* Smooth text */
+*{
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ================= HEADINGS ================= */
+
+
+
+/* ================= INPUTS ================= */
+
+input{
+  width:100%;
+  padding:14px;
+  border-radius:10px;
+  border:none;
+  outline:none;
+  background:rgba(255,255,255,0.06);
+  color:white;
+  margin-bottom:12px;
+  backdrop-filter:blur(10px);
+}
+
+input::file-selector-button{
+  background:#1f2937;
+  color:white;
+  border:none;
+  padding:8px;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+/* ================= BUTTON ================= */
+
+button{
+  background:linear-gradient(90deg,#22c55e,#3b82f6);
+  border:none;
+  padding:14px;
+  border-radius:12px;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+  transition:0.3s;
+  box-shadow:0 0 20px rgba(34,197,94,0.4);
+}
+
+button:hover{
+  transform:scale(1.07);
+  box-shadow:0 0 30px rgba(34,197,94,0.7);
+}
+
+/* ================= GLASS CARD ================= */
+
+.card{
+  background:rgba(255,255,255,0.05);
+  backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,0.08);
+  padding:22px;
+  border-radius:18px;
+  box-shadow:0 0 30px rgba(0,255,150,0.15);
+  transition:0.3s;
+}
+
+.card:hover{
+  transform:translateY(-6px);
+  box-shadow:0 0 40px rgba(34,197,94,0.35);
+}
+
+/* ================= KPI CARDS ================= */
+
+.kpi{
+  background:linear-gradient(145deg,#111827,#020617);
+  padding:20px;
+  border-radius:18px;
+  width:160px;
+  text-align:center;
+  box-shadow:0 0 25px rgba(34,197,94,0.25);
+  transition:0.3s;
+}
+
+.kpi h2{
+  color:#22c55e;
+  font-size:28px;
+}
+
+.kpi:hover{
+  transform:translateY(-8px) scale(1.03);
+  box-shadow:0 0 40px rgba(34,197,94,0.6);
+}
+
+/* ================= COACH PANEL ================= */
+
+.coach{
+  background:linear-gradient(145deg,#020617,#111827);
+  border:1px solid #22c55e;
+  padding:25px;
+  border-radius:20px;
+  box-shadow:0 0 40px rgba(34,197,94,0.35);
+}
+
+/* ================= VIDEO ================= */
+
+video{
+  border-radius:16px;
+  box-shadow:0 0 30px rgba(34,197,94,0.3);
+}
+
+/* ================= DASHBOARD GRID ================= */
+
+.dashboard{
+  display:grid;
+  gap:30px;
+  justify-content:center;
+  margin-top:40px;
+}
+
+/* ================= SCROLLBAR ================= */
+
+::-webkit-scrollbar{
+  width:8px;
+}
+
+::-webkit-scrollbar-thumb{
+  background:linear-gradient(#22c55e,#3b82f6);
+  border-radius:10px;
+}
+
+/* ================= ANIMATIONS ================= */
+
+.fade-in{
+  animation:fade 0.7s ease;
+}
+
+@keyframes fade{
+  from{opacity:0; transform:translateY(15px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
+/* ================= GLOW TEXT ================= */
+
+.glow{
+  color:#22c55e;
+  text-shadow:0 0 10px #22c55e;
+}

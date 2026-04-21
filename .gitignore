@@ -1,0 +1,22 @@
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# PyTorch/OpenCV large files
+*.pyd
+*.dll
+*.exe
+*.so
+
+# PyCharm
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
