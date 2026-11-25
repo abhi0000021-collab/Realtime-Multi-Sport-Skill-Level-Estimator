@@ -1,22 +1,37 @@
-# Byte-compiled / optimized files
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Virtual environments
+# Python virtual environments
 .venv/
 venv/
 env/
 
-# PyTorch/OpenCV large files
-*.pyd
-*.dll
-*.exe
-*.so
+# Python cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
 
 # PyCharm
 .idea/
 
-# OS
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Node dependencies
+node_modules/
+
+# Frontend build files
+dist/
+build/
+
+# Generated output videos, images and reports
+outputs/
+
+# Sample input videos
+videos/
+
+# Nested Hugging Face Git repository
+Realtime-Multi-Sport-Skill-Level-Estimator/
+
+# OS files
 .DS_Store
 Thumbs.db
