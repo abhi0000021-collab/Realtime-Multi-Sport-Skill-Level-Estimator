@@ -1,3 +1,4 @@
+
 # Python virtual environments
 .venv/
 venv/
@@ -25,8 +26,6 @@ build/
 
 # Generated output videos, images and reports
 outputs/
-
-# Sample input videos
 videos/
 
 # Nested Hugging Face Git repository
@@ -35,3 +34,24 @@ Realtime-Multi-Sport-Skill-Level-Estimator/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Generated and personal data
+players.json
+*.log
+
+# Backup files
+*.bak
+*.backup
+*_backup.*
+
+
+# Personal player history
+backend/players.json
+
+# Unused model files
+backend/yolov8n-pose.pt
+backend/yolov8s-pose.pt
+models/yolov8n-pose.onnx
+
+# Unused text file
+cr7.txt

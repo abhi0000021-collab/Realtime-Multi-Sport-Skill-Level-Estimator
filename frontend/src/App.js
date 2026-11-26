@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import API_BASE_URL from "./api";
 
 import { Radar, Doughnut, Line } from "react-chartjs-2";
 
@@ -69,11 +70,11 @@ function App(){
     fd.append("file",video);
     fd.append("player_name",playerName);
 
-    try{
-      const res=await axios.post(
-        "http://127.0.0.1:8000/upload-video/",
-        fd
-      );
+    try {
+  const res = await axios.post(
+    `${API_BASE_URL}/upload-video/`,
+    fd
+        );
       setResult(res.data);
     }catch(e){
       alert("Upload failed");
@@ -329,7 +330,7 @@ plugins:{legend:{display:false}}
   marginTop:"10px"
 }}>
 <a
-  href={`http://127.0.0.1:8000${result.pdf_report}`}
+  href={`${API_BASE_URL}${result.pdf_report}`}
   target="_blank"
   rel="noreferrer"
 >
@@ -354,7 +355,7 @@ plugins:{legend:{display:false}}
 <div style={{background:"#111827",padding:"20px",borderRadius:"18px",width:"520px"}}>
 <h3>🎥 Video Analysis</h3>
 <video width="480" controls>
-<source src={`http://127.0.0.1:8000${result.output_video}`} type="video/mp4"/>
+<source src={`${API_BASE_URL}${result.output_video}`} type="video/mp4"/>
 </video>
 </div>
 )}

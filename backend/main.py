@@ -14,6 +14,7 @@ from fastapi import Form
 import json
 from datetime import datetime as dt
 from sklearn.linear_model import LinearRegression
+import uuid
 
 
 
@@ -21,9 +22,18 @@ from sklearn.linear_model import LinearRegression
 
 app = FastAPI()
 
+CORS_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "CORS_ORIGINS",
+        "http://localhost:3000"
+    ).split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -51,22 +61,23 @@ session = ort.InferenceSession(MODEL_PATH)
 
 prev_center = None
 
-PLAYERS_FILE = "players.json"
+PLAYERS_FILE = os.path.join(BASE_DIR, "players.json")
+
 
 def load_players():
-    if not os.path.exists("players.json"):
+    if not os.path.exists(PLAYERS_FILE):
         return {}
 
     try:
-        with open("players.json","r") as f:
+        with open(PLAYERS_FILE, "r") as f:
             return json.load(f)
-    except:
+    except (json.JSONDecodeError, OSError):
         return {}
 
 
 def save_players(data):
-    with open(PLAYERS_FILE,"w") as f:
-        json.dump(data,f,indent=4)
+    with open(PLAYERS_FILE, "w") as f:
+        json.dump(data, f, indent=4)
 
 
 
@@ -156,22 +167,20 @@ def extract_angles(k):
     except:
         return None
 
-def compute_speed(k):
-    global prev_center
-    hips=[k[11],k[12]]
+def compute_speed(k, previous_center=None):
+    hips = [k[11], k[12]]
 
-    if (0,0) in hips:
-        return 0
+    if (0, 0) in hips:
+        return 0, previous_center
 
-    center=np.mean(hips,axis=0)
+    center = np.mean(hips, axis=0)
 
-    if prev_center is None:
-        prev_center=center
-        return 0
+    if previous_center is None:
+        return 0, center
 
-    speed=np.linalg.norm(center-prev_center)
-    prev_center=center
-    return speed
+    speed = np.linalg.norm(center - previous_center)
+
+    return float(speed), center
 
 # ---------------- LEVEL ---------------- #
 
@@ -319,18 +328,34 @@ async def upload_video(
     global prev_center
     prev_center=None
 
-    file_path=os.path.join(UPLOAD_FOLDER,file.filename)
+    # Validate uploaded video format
+    original_filename = os.path.basename(file.filename or "")
+    extension = os.path.splitext(original_filename)[1].lower()
 
-    with open(file_path,"wb") as buf:
-        shutil.copyfileobj(file.file,buf)
+    allowed_extensions = [".mp4", ".avi", ".mov", ".mkv", ".webm"]
 
-    cap=cv2.VideoCapture(file_path)
+    if extension not in allowed_extensions:
+        return {"error": "Unsupported video format. Please upload MP4, AVI, MOV, MKV, or WEBM."}
 
-    w=int(cap.get(3))
-    h=int(cap.get(4))
-    fps=int(cap.get(5)) or 25
+    # Generate a unique filename
+    unique_id = uuid.uuid4().hex[:12]
+    name = f"{os.path.splitext(original_filename)[0]}_{unique_id}"
 
-    name=os.path.splitext(file.filename)[0]
+    file_path = os.path.join(UPLOAD_FOLDER, name + extension)
+
+    with open(file_path, "wb") as buf:
+        shutil.copyfileobj(file.file, buf)
+
+    cap = cv2.VideoCapture(file_path)
+
+    if not cap.isOpened():
+        cap.release()
+        os.remove(file_path)
+        return {"error": "Unable to open the uploaded video. Please try another video."}
+
+    w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fps = int(cap.get(cv2.CAP_PROP_FPS)) or 25
 
     out_path=os.path.join(OUTPUT_FOLDER,f"annotated_{name}.mp4")
 
@@ -348,6 +373,7 @@ async def upload_video(
     tech_list = []
     bal_list = []
     speed_list = []
+    previous_center = None
 
     # ---------------- LOOP ----------------
     while True:
@@ -365,7 +391,7 @@ async def upload_video(
         angles = extract_angles(kpts)
 
         if angles:
-            speed = compute_speed(kpts)
+            speed, previous_center = compute_speed(kpts, previous_center)
 
             # ✅ MODEL INPUT (DO NOT CHANGE)
             feature_vector = [
@@ -407,8 +433,8 @@ async def upload_video(
 
             speed_score = min(speed * 15, 100)
 
-            tech_list.append(technique)
-            bal_list.append(balance)
+            tech_list.append(technique_score)
+            bal_list.append(balance_score)
             speed_list.append(speed_score)
 
             final_score = (
@@ -467,18 +493,47 @@ async def upload_video(
     cap.release()
     out.release()
 
+    # -------- CHECK POSE DETECTION -------- #
+
+    if not all_scores:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+        if os.path.exists(out_path):
+            os.remove(out_path)
+
+        return {
+            "error": "No person or valid body pose detected in the video. Please upload a clear video showing a person."
+        }
+    # -------- AVERAGE PERFORMANCE METRICS -------- #
+
+    technique_score = float(np.mean(tech_list))
+    balance_score = float(np.mean(bal_list))
+    speed_score = float(np.mean(speed_list))
     # -------- FFMPEG -------- #
 
-    converted_path=os.path.join(OUTPUT_FOLDER,f"converted_{name}.mp4")
+    converted_path = os.path.join(
+        OUTPUT_FOLDER,
+        f"converted_{name}.mp4"
+    )
 
-    subprocess.run([
-        "ffmpeg",
-        "-y",
-        "-i",out_path,
-        "-vcodec","libx264",
-        "-pix_fmt","yuv420p",
-        converted_path
-    ])
+    ffmpeg_result = subprocess.run(
+        [
+            "ffmpeg",
+            "-y",
+            "-i", out_path,
+            "-vcodec", "libx264",
+            "-pix_fmt", "yuv420p",
+            converted_path
+        ],
+        capture_output=True,
+        text=True
+    )
+
+    if ffmpeg_result.returncode != 0:
+        raise RuntimeError(
+            f"FFmpeg video conversion failed: {ffmpeg_result.stderr}"
+        )
 
     avg_score=sum(all_scores)/len(all_scores) if all_scores else 0
     players = load_players()
@@ -495,11 +550,11 @@ async def upload_video(
 
     weakness = []
 
-    # Example metrics derived from score
-    technique = avg_score
-    speed = avg_score * 0.9
-    control = avg_score * 0.85
-    stability = avg_score * 0.8
+    # Use average video performance metrics
+    technique = technique_score
+    speed = speed_score
+    control = balance_score
+    stability = balance_score
 
     if technique < 70:
         weakness.append("Technique needs improvement")
