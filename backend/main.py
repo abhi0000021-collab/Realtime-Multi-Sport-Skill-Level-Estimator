@@ -1073,17 +1073,19 @@ def upload_video(
 
             processed_frames += 1
 
-            if (
-                processed_frames == 1
-                or processed_frames % 50 == 0
-            ):
+            # Process only 1 out of every 3 frames.
+            FRAME_SKIP = 3
 
-                logger.info(
-                    "[%s] PROCESSING FRAME %s / %s",
-                    request_id,
-                    processed_frames,
-                    frame_count
-                )
+            if (processed_frames - 1) % FRAME_SKIP != 0:
+                out.write(frame)
+                continue
+
+            logger.info(
+                "[%s] PROCESSING FRAME %s / %s",
+                request_id,
+                processed_frames,
+                frame_count
+            )
 
             # ONNX POSE DETECTION
 
