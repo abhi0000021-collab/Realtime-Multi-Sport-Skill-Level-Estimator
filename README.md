@@ -2,6 +2,16 @@
 
 An AI-powered web application that analyzes an athlete's uploaded sports video using human pose estimation and machine learning. It estimates a performance score and skill level, provides improvement feedback, and generates an annotated video and PDF report.
 
+## Application Screenshots
+
+### Video Upload Interface
+
+![Video upload interface](Screenshot%202026-02-08%20194020.png)
+
+### Video Analysis and Performance Feedback
+
+![Video analysis with pose-skeleton visualization and feedback](Screenshot%202026-02-12%20203943.png)
+
 ## Overview
 
 The application combines a React frontend with a Python/FastAPI backend. The backend processes uploaded video frames, extracts pose-based movement features, uses trained machine-learning models for performance estimation, and returns analysis results to the frontend.
